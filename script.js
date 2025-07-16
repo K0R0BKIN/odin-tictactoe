@@ -9,7 +9,13 @@ const Gameboard = (function () {
     board[cellIndex] = marker;
   }
 
-  return { getBoard, setCell };
+  function setBoard(mockBoard) {
+    mockBoard.forEach((marker, cellIndex) => {
+      setCell(cellIndex, marker);
+    });
+  }
+
+  return { getBoard, setCell, setBoard };
 })();
 
 function createPlayer(name, marker) {
@@ -68,7 +74,7 @@ const Game = (function () {
       for (const player of players) {
         const marker = player.getMarker();
         const isWinning = combination.every(
-          (cellIndex) => board[cellIndex] === marker
+          (cellIndex) => board[cellIndex] === marker,
         );
         if (isWinning) {
           return player;
@@ -96,11 +102,26 @@ const Game = (function () {
     }
   }
 
-  return { player1, player2, handleMove };
+  function init(mockBoard) {
+    Gameboard.setBoard(mockBoard);
+    handleMove();
+  }
+
+  return { player1, player2, handleMove, init };
 })();
 
-Game.player1.makeMove(0);
-Game.player2.makeMove(1);
-Game.player1.makeMove(3);
-Game.player2.makeMove(7);
-Game.player1.makeMove(6);
+// prettier-ignore
+const MOCK_BOARDS = {
+  tie: [
+    "X", "O", "X",
+    "X", "O", "X",
+    "O", "X", "O",
+  ],
+  xWins: [
+    "O", "O", "X",
+    "X", "X", "X",
+    "O", "X", "O",
+  ],
+};
+
+Game.init(MOCK_BOARDS.tie);
