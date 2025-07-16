@@ -13,6 +13,10 @@ const Gameboard = (function () {
 })();
 
 function createPlayer(name, marker) {
+  function makeMove(cellIndex) {
+    Gameboard.setCell(cellIndex, marker);
+    Game.handleMove();
+  }
 
   function getName() {
     return name;
@@ -22,36 +26,33 @@ function createPlayer(name, marker) {
     return marker;
   }
 
-  return { getName, getMarker };
+  return { makeMove, getName, getMarker };
 }
 
 const Game = (function () {
   const MARKERS = ["X", "O"];
   const players = [
     createPlayer("Player 1", MARKERS[0]),
-    createPlayer("Player 2", MARKERS[1])
+    createPlayer("Player 2", MARKERS[1]),
   ];
+  const [player1, player2] = players;
+  let currentPlayer = player1;
 
-  let currentPlayer = players[0];
-  let winner;
-
-  function makeMove(cellIndex) {
-    const marker = currentPlayer.getMarker();
-    Gameboard.setCell(cellIndex, marker);
-    checkWinner();
+  function handleMove() {
+    const winner = checkWinner();
 
     if (winner === undefined) {
       switchPlayer();
+    } else {
+      gameOver(winner);
     }
   }
 
   function switchPlayer() {
-    currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
+    currentPlayer = currentPlayer === player1 ? player2 : player1;
   }
 
-  function checkWinner() {
-    const board = Gameboard.getBoard();
-
+  function checkWinner(board = Gameboard.getBoard()) {
     const WINNING_COMBINATIONS = [
       [0, 1, 2],
       [3, 4, 5],
@@ -66,37 +67,40 @@ const Game = (function () {
     for (const combination of WINNING_COMBINATIONS) {
       for (const player of players) {
         const marker = player.getMarker();
-        const isWinning = combination.every(cellIndex => board[cellIndex] === marker);
+        const isWinning = combination.every(
+          (cellIndex) => board[cellIndex] === marker
+        );
         if (isWinning) {
-          winner = player;
-          gameOver();
-          return;
+          return player;
         }
       }
     }
 
-    if (board.every(cell => cell != null)) {
-      winner = null;
-      gameOver();
-      return;
+    if (board.every((cellMarker) => cellMarker != null)) {
+      return null;
     }
+
+    return undefined;
   }
 
-  function gameOver() {
-    console.log("Game over.")
+  function gameOver(winner) {
+    console.log("Game over.");
+
     if (winner === null) {
-      console.log("Tie.")
+      console.log("Tie.");
     } else {
       const winnerName = winner.getName();
-      console.log(`${winnerName} wins.`)
+      const winnerMarker = winner.getMarker();
+
+      console.log(`${winnerName} ("${winnerMarker}") wins.`);
     }
   }
 
-  return { makeMove };
+  return { player1, player2, handleMove };
 })();
 
-Game.makeMove(0);
-Game.makeMove(1);
-Game.makeMove(3);
-Game.makeMove(7);
-Game.makeMove(6);
+Game.player1.makeMove(0);
+Game.player2.makeMove(1);
+Game.player1.makeMove(3);
+Game.player2.makeMove(7);
+Game.player1.makeMove(6);
