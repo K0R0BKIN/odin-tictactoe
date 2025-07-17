@@ -9,13 +9,7 @@ const Gameboard = (function () {
     board[cellIndex] = marker;
   }
 
-  function setBoard(mockBoard) {
-    mockBoard.forEach((marker, cellIndex) => {
-      setCell(cellIndex, marker);
-    });
-  }
-
-  return { getBoard, setCell, setBoard };
+  return { getBoard, setCell };
 })();
 
 function createPlayer(name, marker) {
@@ -102,26 +96,6 @@ const Game = (function () {
     }
   }
 
-  function init(mockBoard) {
-    Gameboard.setBoard(mockBoard);
-    handleMove();
-  }
-
-  return { player1, player2, handleMove, init };
+  return { player1, player2, handleMove };
 })();
 
-// prettier-ignore
-const MOCK_BOARDS = {
-  tie: [
-    "X", "O", "X",
-    "X", "O", "X",
-    "O", "X", "O",
-  ],
-  xWins: [
-    "O", "O", "X",
-    "X", "X", "X",
-    "O", "X", "O",
-  ],
-};
-
-Game.init(MOCK_BOARDS.tie);
