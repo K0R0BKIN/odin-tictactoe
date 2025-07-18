@@ -14,6 +14,17 @@ const Gameboard = (function () {
 
 function createPlayer(name, marker) {
   function makeMove(cellIndex) {
+    const board = Gameboard.getBoard();
+
+    const cellValue = board[cellIndex];
+    const gameOver = Game.getStatus().isOver;
+    const ILLEGAL_MOVES = {
+      cellOverwrite: cellValue !== null,
+      gameOver: gameOver,
+    };
+    const isIllegal = Object.values(ILLEGAL_MOVES).some((check) => check);
+    if (isIllegal) return;
+
     Gameboard.setCell(cellIndex, marker);
     Game.handleMove();
   }
@@ -36,24 +47,29 @@ const Game = (function () {
     createPlayer("Player 2", MARKERS[1]),
   ];
   const [player1, player2] = players;
-  let currentPlayer = player1;
 
-  function getCurrentPlayer() {
-    return currentPlayer;
+  const status = {
+    currentPlayer: player1,
+    isOver: false,
+    winner: undefined,
+  };
+
+  function getStatus() {
+    return status;
   }
 
   function handleMove() {
-    const winner = checkWinner();
+    status.winner = checkWinner();
 
-    if (winner === undefined) {
+    if (status.winner === undefined) {
       switchPlayer();
     } else {
-      gameOver(winner);
+      gameOver(status.winner);
     }
   }
 
   function switchPlayer() {
-    currentPlayer = currentPlayer === player1 ? player2 : player1;
+    status.currentPlayer = status.currentPlayer === player1 ? player2 : player1;
   }
 
   function checkWinner(board = Gameboard.getBoard()) {
@@ -71,16 +87,17 @@ const Game = (function () {
     for (const combination of WINNING_COMBINATIONS) {
       for (const player of players) {
         const marker = player.getMarker();
-        const isWinning = combination.every(
-          (cellIndex) => board[cellIndex] === marker
-        );
+        const isWinning = combination.every((cellIndex) => {
+          const cellValue = board[cellIndex];
+          return cellValue === marker;
+        });
         if (isWinning) {
           return player;
         }
       }
     }
 
-    if (board.every((cellMarker) => cellMarker != null)) {
+    if (board.every((cellValue) => cellValue != null)) {
       return null;
     }
 
@@ -88,19 +105,20 @@ const Game = (function () {
   }
 
   function gameOver(winner) {
+    status.isOver = true;
     console.log("Game over.");
 
     if (winner === null) {
       console.log("Tie.");
     } else {
-      const winnerName = winner.getName();
-      const winnerMarker = winner.getMarker();
+      const winnerName = status.winner.getName();
+      const winnerMarker = status.winner.getMarker();
 
       console.log(`${winnerName} ("${winnerMarker}") wins.`);
     }
   }
 
-  return { getCurrentPlayer, handleMove };
+  return { getStatus, handleMove };
 })();
 
 const DisplayController = (function () {
@@ -142,7 +160,7 @@ const DisplayController = (function () {
 
   function handleMove(node) {
     const index = node.dataset.index;
-    const player = Game.getCurrentPlayer();
+    const player = Game.getStatus().currentPlayer;
     player.makeMove(index);
     renderBoard();
   }
