@@ -38,10 +38,7 @@ function createPlayer(marker) {
 
 const Game = (function () {
   const MARKERS = ["X", "O"];
-  const players = [
-    createPlayer(MARKERS[0]),
-    createPlayer(MARKERS[1]),
-  ];
+  const players = [createPlayer(MARKERS[0]), createPlayer(MARKERS[1])];
   const [player1, player2] = players;
 
   const status = {
@@ -102,43 +99,40 @@ const Game = (function () {
 
   function gameOver(winner) {
     status.isOver = true;
-    console.log("Game over.");
-
-    if (winner === null) {
-      console.log("Tie.");
-    } else {
-      const winnerMarker = status.winner.getMarker();
-      console.log(`${winnerMarker} wins.`);
-    }
   }
 
   return { getStatus, handleMove };
 })();
 
 const DisplayController = (function () {
-  const boardNode = document.querySelector("#gameboard");
+  const gameboard = document.querySelector("#gameboard");
+  const boardData = Gameboard.getBoard();
+  boardData.forEach((_, boardIndex) => {
+    const cellNode = buildCell(boardIndex);
+    gameboard.append(cellNode);
+  });
+  renderGameboard(gameboard);
 
-  function buildBoard(board = Gameboard.getBoard()) {
-    board.forEach((_, boardIndex) => {
-      const cellNode = buildCell(boardIndex);
-      boardNode.append(cellNode);
-    });
-    renderBoard();
+  gameboard.addEventListener("click", (event) => {
+    const node = event.target;
+    const isCell = node.classList.contains("cell");
+    if (isCell) handleMove(node);
+  });
+  document.body.append(gameboard);
 
-    boardNode.addEventListener("click", (event) => {
-      const node = event.target;
-      const isCell = node.classList.contains("cell");
-      if (isCell) handleMove(node);
-    });
-  }
+  const statusboard = document.createElement("div");
+  statusboard.id = "statusboard";
+  renderStatusboard(statusboard);
+  document.body.prepend(statusboard);
 
-  function renderBoard() {
-    const board = Gameboard.getBoard();
-    const cellNodes = boardNode.querySelectorAll(".cell");
+  function renderGameboard() {
+    const node = gameboard;
+    const boardData = Gameboard.getBoard();
+    const cellNodes = node.querySelectorAll(".cell");
     cellNodes.forEach((node) => {
       let content = node.textContent;
       const index = node.dataset.index;
-      const boardValue = board[index];
+      const boardValue = boardData[index];
       if (!content && boardValue) {
         node.textContent = boardValue;
       }
@@ -156,10 +150,26 @@ const DisplayController = (function () {
     const index = node.dataset.index;
     const player = Game.getStatus().currentPlayer;
     player.makeMove(index);
-    renderBoard();
+    renderGameboard();
+    renderStatusboard();
   }
 
-  return { buildBoard };
-})();
+  function renderStatusboard() {
+    const node = statusboard;
+    const gameOver = Game.getStatus().isOver;
+    if (gameOver) {
+      node.textContent = "Game over. ";
 
-DisplayController.buildBoard();
+      const winner = Game.getStatus().winner;
+      if (winner === null) {
+        node.textContent += "Tie.";
+      } else {
+        const winnerMarker = winner.getMarker();
+        node.textContent += `${winnerMarker} wins.`;
+      }
+    } else {
+      const currentPlayerMarker = Game.getStatus().currentPlayer.getMarker();
+      node.textContent = `Current player: ${currentPlayerMarker}`;
+    }
+  }
+})();
