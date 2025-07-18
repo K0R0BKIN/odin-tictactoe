@@ -12,7 +12,7 @@ const Gameboard = (function () {
   return { getBoard, setCell };
 })();
 
-function createPlayer(name, marker) {
+function createPlayer(marker) {
   function makeMove(cellIndex) {
     const board = Gameboard.getBoard();
 
@@ -29,22 +29,18 @@ function createPlayer(name, marker) {
     Game.handleMove();
   }
 
-  function getName() {
-    return name;
-  }
-
   function getMarker() {
     return marker;
   }
 
-  return { makeMove, getName, getMarker };
+  return { makeMove, getMarker };
 }
 
 const Game = (function () {
   const MARKERS = ["X", "O"];
   const players = [
-    createPlayer("Player 1", MARKERS[0]),
-    createPlayer("Player 2", MARKERS[1]),
+    createPlayer(MARKERS[0]),
+    createPlayer(MARKERS[1]),
   ];
   const [player1, player2] = players;
 
@@ -111,10 +107,8 @@ const Game = (function () {
     if (winner === null) {
       console.log("Tie.");
     } else {
-      const winnerName = status.winner.getName();
       const winnerMarker = status.winner.getMarker();
-
-      console.log(`${winnerName} ("${winnerMarker}") wins.`);
+      console.log(`${winnerMarker} wins.`);
     }
   }
 
