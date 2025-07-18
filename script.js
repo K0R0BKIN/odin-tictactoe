@@ -38,6 +38,10 @@ const Game = (function () {
   const [player1, player2] = players;
   let currentPlayer = player1;
 
+  function getCurrentPlayer() {
+    return currentPlayer;
+  }
+
   function handleMove() {
     const winner = checkWinner();
 
@@ -68,7 +72,7 @@ const Game = (function () {
       for (const player of players) {
         const marker = player.getMarker();
         const isWinning = combination.every(
-          (cellIndex) => board[cellIndex] === marker,
+          (cellIndex) => board[cellIndex] === marker
         );
         if (isWinning) {
           return player;
@@ -96,6 +100,54 @@ const Game = (function () {
     }
   }
 
-  return { player1, player2, handleMove };
+  return { getCurrentPlayer, handleMove };
 })();
 
+const DisplayController = (function () {
+  const boardNode = document.querySelector("#gameboard");
+
+  function buildBoard(board = Gameboard.getBoard()) {
+    board.forEach((_, boardIndex) => {
+      const cellNode = buildCell(boardIndex);
+      boardNode.append(cellNode);
+    });
+    renderBoard();
+
+    boardNode.addEventListener("click", (event) => {
+      const node = event.target;
+      const isCell = node.classList.contains("cell");
+      if (isCell) handleMove(node);
+    });
+  }
+
+  function renderBoard() {
+    const board = Gameboard.getBoard();
+    const cellNodes = boardNode.querySelectorAll(".cell");
+    cellNodes.forEach((node) => {
+      let content = node.textContent;
+      const index = node.dataset.index;
+      const boardValue = board[index];
+      if (!content && boardValue) {
+        node.textContent = boardValue;
+      }
+    });
+  }
+
+  function buildCell(index) {
+    const node = document.createElement("button");
+    node.className = "cell";
+    node.dataset.index = index;
+    return node;
+  }
+
+  function handleMove(node) {
+    const index = node.dataset.index;
+    const player = Game.getCurrentPlayer();
+    player.makeMove(index);
+    renderBoard();
+  }
+
+  return { buildBoard };
+})();
+
+DisplayController.buildBoard();
