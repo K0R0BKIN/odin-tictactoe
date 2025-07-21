@@ -43,6 +43,7 @@ const GameController = (function () {
     const moveIllegal = !validateMove(index);
     if (moveIllegal) return;
 
+    const { currentPlayer } = getStatus();
     const marker = currentPlayer.getMarker();
     Gameboard.setCell(index, marker);
 
@@ -54,7 +55,8 @@ const GameController = (function () {
     }
   }
 
-  function validateMove(index, board = getStatus().board) {
+  function validateMove(index) {
+    const { board, gameOver } = getStatus();
     const illegalMoves = {
       gameOver,
       cellOccupied: board[index],
@@ -63,7 +65,8 @@ const GameController = (function () {
     return !isIllegal;
   }
 
-  function checkWinner(board = getStatus().board) {
+  function checkWinner() {
+    const { board, currentPlayer } = getStatus();
     const WIN_PATTERNS = [
       [0, 1, 2],
       [3, 4, 5],
