@@ -1,72 +1,76 @@
 const Gameboard = (function () {
-  const board = Array(9).fill(null);
+  let board;
+  init();
+
+  function init() {
+    board = Array(9).fill(null);
+  }
+
+  function reset() {
+    init();
+  }
+
+  function setCell(index, marker) {
+    board[index] = marker;
+  }
 
   function getBoard() {
-    return board;
+    return [...board];
   }
 
-  function setCell(cellIndex, marker) {
-    board[cellIndex] = marker;
-  }
-
-  return { getBoard, setCell };
+  return { setCell, getBoard, reset };
 })();
 
 function createPlayer(marker) {
-  function makeMove(cellIndex) {
-    const board = Gameboard.getBoard();
-
-    const cellValue = board[cellIndex];
-    const gameOver = Game.getStatus().isOver;
-    const ILLEGAL_MOVES = {
-      cellOverwrite: cellValue !== null,
-      gameOver: gameOver,
-    };
-    const isIllegal = Object.values(ILLEGAL_MOVES).some((check) => check);
-    if (isIllegal) return;
-
-    Gameboard.setCell(cellIndex, marker);
-    Game.handleMove();
-  }
-
   function getMarker() {
     return marker;
   }
 
-  return { makeMove, getMarker };
+  return { getMarker };
 }
 
-const Game = (function () {
-  const MARKERS = ["X", "O"];
-  const players = [createPlayer(MARKERS[0]), createPlayer(MARKERS[1])];
-  const [player1, player2] = players;
+const GameController = (function () {
+  let players;
+  let currentPlayer;
+  let gameOver;
+  let winner;
 
-  const status = {
-    currentPlayer: player1,
-    isOver: false,
-    winner: undefined,
-  };
+  function init() {
+    players = [createPlayer("x"), createPlayer("o")];
 
-  function getStatus() {
-    return status;
+    currentPlayer = players[0];
+    gameOver = false;
+    winner = undefined;
+
+    DisplayController.init();
   }
 
-  function handleMove() {
-    status.winner = checkWinner();
+  function playRound(index) {
+    const moveIllegal = !validateMove(index);
+    if (moveIllegal) return;
 
-    if (status.winner === undefined) {
+    const marker = currentPlayer.getMarker();
+    Gameboard.setCell(index, marker);
+
+    winner = checkWinner();
+    if (winner === undefined) {
       switchPlayer();
     } else {
-      gameOver(status.winner);
+      gameOver = true;
     }
   }
 
-  function switchPlayer() {
-    status.currentPlayer = status.currentPlayer === player1 ? player2 : player1;
+  function validateMove(index, board = getStatus().board) {
+    const illegalMoves = {
+      gameOver,
+      cellOccupied: board[index],
+    };
+    const isIllegal = Object.values(illegalMoves).some(Boolean);
+    return !isIllegal;
   }
 
-  function checkWinner(board = Gameboard.getBoard()) {
-    const WINNING_COMBINATIONS = [
+  function checkWinner(board = getStatus().board) {
+    const WIN_PATTERNS = [
       [0, 1, 2],
       [3, 4, 5],
       [6, 7, 8],
@@ -76,100 +80,107 @@ const Game = (function () {
       [0, 4, 8],
       [2, 4, 6],
     ];
+    let winner;
 
-    for (const combination of WINNING_COMBINATIONS) {
-      for (const player of players) {
-        const marker = player.getMarker();
-        const isWinning = combination.every((cellIndex) => {
-          const cellValue = board[cellIndex];
-          return cellValue === marker;
-        });
-        if (isWinning) {
-          return player;
-        }
+    const currentMarker = currentPlayer.getMarker();
+    for (const pattern of WIN_PATTERNS) {
+      const matchesMarker = pattern.every(
+        (index) => board[index] === currentMarker
+      );
+      if (matchesMarker) {
+        winner = currentPlayer;
+        return winner;
       }
     }
 
-    if (board.every((cellValue) => cellValue != null)) {
-      return null;
+    const boardFull = board.every((marker) => marker);
+    if (boardFull) {
+      winner = null;
+      return winner;
     }
-
-    return undefined;
   }
 
-  function gameOver(winner) {
-    status.isOver = true;
+  function switchPlayer() {
+    currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
   }
 
-  return { getStatus, handleMove };
+  function getStatus() {
+    return {
+      board: Gameboard.getBoard(),
+      currentPlayer,
+      gameOver,
+      winner,
+    };
+  }
+
+  return { init, playRound, getStatus };
 })();
 
 const DisplayController = (function () {
-  const gameboard = document.querySelector("#gameboard");
-  const boardData = Gameboard.getBoard();
-  boardData.forEach((_, boardIndex) => {
-    const cellNode = buildCell(boardIndex);
-    gameboard.append(cellNode);
-  });
-  renderGameboard(gameboard);
+  const gameboardNode = document.querySelector("#gameboard");
+  const statusboardNode = document.querySelector("#statusboard");
 
-  gameboard.addEventListener("click", (event) => {
-    const node = event.target;
-    const isCell = node.classList.contains("cell");
-    if (isCell) handleMove(node);
-  });
-  document.body.append(gameboard);
+  function init() {
+    buildGameboard();
+    gameboardNode.addEventListener("click", handleMove);
 
-  const statusboard = document.createElement("div");
-  statusboard.id = "statusboard";
-  renderStatusboard(statusboard);
-  document.body.prepend(statusboard);
+    render();
 
-  function renderGameboard() {
-    const node = gameboard;
-    const boardData = Gameboard.getBoard();
-    const cellNodes = node.querySelectorAll(".cell");
-    cellNodes.forEach((node) => {
-      let content = node.textContent;
-      const index = node.dataset.index;
-      const boardValue = boardData[index];
-      if (!content && boardValue) {
-        node.textContent = boardValue;
+    function buildCell(index) {
+      const node = document.createElement("button");
+      node.className = "cell";
+      node.dataset.index = index;
+      return node;
+    }
+
+    function buildGameboard() {
+      const { board } = GameController.getStatus();
+      const cellButtons = board.map((_, index) => buildCell(index));
+      gameboardNode.append(...cellButtons);
+    }
+
+    function handleMove(event) {
+      const { target } = event;
+      const isCell = target.classList.contains("cell");
+      if (isCell) {
+        const index = Number(target.dataset.index);
+        GameController.playRound(index);
+        render();
       }
-    });
-  }
-
-  function buildCell(index) {
-    const node = document.createElement("button");
-    node.className = "cell";
-    node.dataset.index = index;
-    return node;
-  }
-
-  function handleMove(node) {
-    const index = node.dataset.index;
-    const player = Game.getStatus().currentPlayer;
-    player.makeMove(index);
-    renderGameboard();
-    renderStatusboard();
-  }
-
-  function renderStatusboard() {
-    const node = statusboard;
-    const gameOver = Game.getStatus().isOver;
-    if (gameOver) {
-      node.textContent = "Game over. ";
-
-      const winner = Game.getStatus().winner;
-      if (winner === null) {
-        node.textContent += "Tie.";
-      } else {
-        const winnerMarker = winner.getMarker();
-        node.textContent += `${winnerMarker} wins.`;
-      }
-    } else {
-      const currentPlayerMarker = Game.getStatus().currentPlayer.getMarker();
-      node.textContent = `Current player: ${currentPlayerMarker}`;
     }
   }
+
+  function render() {
+    const status = GameController.getStatus();
+    renderGameboard(status);
+    renderStatusboard(status);
+
+    function renderGameboard({ board }) {
+      const cellButtons = gameboardNode.querySelectorAll(".cell");
+      cellButtons.forEach((node, index) => {
+        node.textContent = board[index]?.toUpperCase();
+      });
+    }
+
+    function renderStatusboard({ currentPlayer, gameOver, winner }) {
+      let message = "";
+      if (!gameOver) {
+        const currentPlayerMarker = currentPlayer.getMarker();
+        message = `Next move: ${currentPlayerMarker.toUpperCase()}`;
+      } else {
+        message = "Game over. ";
+        if (winner) {
+          const winnerMarker = winner.getMarker();
+          message += `${winnerMarker.toUpperCase()} wins.`;
+        } else {
+          message += "Tie.";
+        }
+      }
+      statusboardNode.textContent = message;
+    }
+  }
+
+  return { init, render };
 })();
+
+GameController.init();
