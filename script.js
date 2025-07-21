@@ -1,13 +1,8 @@
 const Gameboard = (function () {
   let board;
-  init();
 
   function init() {
     board = Array(9).fill(null);
-  }
-
-  function reset() {
-    init();
   }
 
   function setCell(index, marker) {
@@ -18,7 +13,7 @@ const Gameboard = (function () {
     return [...board];
   }
 
-  return { setCell, getBoard, reset };
+  return { setCell, getBoard, init };
 })();
 
 function createPlayer(marker) {
@@ -36,13 +31,12 @@ const GameController = (function () {
   let winner;
 
   function init() {
+    Gameboard.init();
     players = [createPlayer("x"), createPlayer("o")];
 
     currentPlayer = players[0];
     gameOver = false;
     winner = undefined;
-
-    DisplayController.init();
   }
 
   function playRound(index) {
@@ -119,10 +113,13 @@ const GameController = (function () {
 const DisplayController = (function () {
   const gameboardNode = document.querySelector("#gameboard");
   const statusboardNode = document.querySelector("#statusboard");
+  const controlsNode = document.querySelector("#controls");
 
   function init() {
     buildGameboard();
+
     gameboardNode.addEventListener("click", handleMove);
+    controlsNode.addEventListener("click", handleReset);
 
     render();
 
@@ -139,12 +136,19 @@ const DisplayController = (function () {
       gameboardNode.append(...cellButtons);
     }
 
-    function handleMove(event) {
-      const { target } = event;
+    function handleMove({ target }) {
       const isCell = target.classList.contains("cell");
       if (isCell) {
         const index = Number(target.dataset.index);
         GameController.playRound(index);
+        render();
+      }
+    }
+
+    function handleReset({ target }) {
+      const isResetButton = target.id === "reset-button";
+      if (isResetButton) {
+        GameController.init();
         render();
       }
     }
@@ -184,3 +188,4 @@ const DisplayController = (function () {
 })();
 
 GameController.init();
+DisplayController.init();
