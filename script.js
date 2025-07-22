@@ -40,14 +40,15 @@ const GameController = (function () {
   }
 
   function playRound(index) {
-    const moveIllegal = !validateMove(index);
+    const status = getStatus();
+
+    const moveIllegal = !validateMove(index, status);
     if (moveIllegal) return;
 
-    const { currentPlayer } = getStatus();
-    const marker = currentPlayer.getMarker();
+    const marker = status.currentPlayer.getMarker();
     Gameboard.setCell(index, marker);
 
-    winner = checkWinner();
+    winner = checkWinner(status);
     if (winner === undefined) {
       switchPlayer();
     } else {
@@ -55,8 +56,7 @@ const GameController = (function () {
     }
   }
 
-  function validateMove(index) {
-    const { board, gameOver } = getStatus();
+  function validateMove(index, { board, gameOver }) {
     const illegalMoves = {
       gameOver,
       cellOccupied: board[index],
@@ -65,8 +65,8 @@ const GameController = (function () {
     return !isIllegal;
   }
 
-  function checkWinner() {
-    const { board, currentPlayer } = getStatus();
+  function checkWinner({ currentPlayer }) {
+    const { board } = getStatus();
     const WIN_PATTERNS = [
       [0, 1, 2],
       [3, 4, 5],
@@ -122,8 +122,9 @@ const DisplayController = (function () {
   const closeButton = dialogNode.querySelector("#close-button");
 
   function init() {
-    buildGameboard();
+    const status = GameController.getStatus();
 
+    buildGameboard(status);
     gameboardNode.addEventListener("click", handleMove);
 
     resetButton.addEventListener("click", handleReset);
@@ -138,8 +139,7 @@ const DisplayController = (function () {
       return node;
     }
 
-    function buildGameboard() {
-      const { board } = GameController.getStatus();
+    function buildGameboard({ board }) {
       const cellButtons = board.map((_, index) => buildCell(index));
       gameboardNode.append(...cellButtons);
     }
