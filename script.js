@@ -119,7 +119,6 @@ const DisplayController = (function () {
   const dialogNode = document.querySelector("#dialog");
   const messageNode = dialogNode.querySelector("#message");
   const resetButton = dialogNode.querySelector("#reset-button");
-  const closeButton = dialogNode.querySelector("#close-button");
 
   function init() {
     const status = GameController.getStatus();
@@ -128,7 +127,6 @@ const DisplayController = (function () {
     gameboardNode.addEventListener("click", handleMove);
 
     resetButton.addEventListener("click", handleReset);
-    closeButton.addEventListener("click", () => dialogNode.close());
 
     render();
 
