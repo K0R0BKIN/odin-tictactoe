@@ -85,16 +85,16 @@ const GameController = (function () {
         (index) => board[index] === currentMarker
       );
       if (matchesMarker) {
-        winner = currentPlayer;
-        return winner;
+        return (winner = currentPlayer);
       }
     }
 
     const boardFull = board.every((marker) => marker);
     if (boardFull) {
-      winner = null;
-      return winner;
+      return (winner = null);
     }
+
+    return undefined;
   }
 
   function switchPlayer() {
