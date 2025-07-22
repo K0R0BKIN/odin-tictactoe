@@ -15,11 +15,15 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="statusboard"></div>
     <div id="gameboard"></div>
-    <div id="controls">
-      <button id="reset-button">Reset</button>
-    </div>
+    <dialog id="dialog">
+      <p id="message"></p>
+      <form method="dialog">
+        <button class="button" id="reset-button">Reset</button>
+        <button class="button" id="close-button">Close</button>
+      </form>
+    </dialog>
+
     <script src="script.js"></script>
   </body>
 </html>

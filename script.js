@@ -115,14 +115,19 @@ const GameController = (function () {
 
 const DisplayController = (function () {
   const gameboardNode = document.querySelector("#gameboard");
-  const statusboardNode = document.querySelector("#statusboard");
-  const controlsNode = document.querySelector("#controls");
+
+  const dialogNode = document.querySelector("#dialog");
+  const messageNode = dialogNode.querySelector("#message");
+  const resetButton = dialogNode.querySelector("#reset-button");
+  const closeButton = dialogNode.querySelector("#close-button");
 
   function init() {
     buildGameboard();
 
     gameboardNode.addEventListener("click", handleMove);
-    controlsNode.addEventListener("click", handleReset);
+
+    resetButton.addEventListener("click", handleReset);
+    closeButton.addEventListener("click", () => dialogNode.close());
 
     render();
 
@@ -148,19 +153,21 @@ const DisplayController = (function () {
       }
     }
 
-    function handleReset({ target }) {
-      const isResetButton = target.id === "reset-button";
-      if (isResetButton) {
-        GameController.init();
-        render();
-      }
+    function handleReset() {
+      GameController.init();
+      render();
+      dialogNode.close();
     }
   }
 
   function render() {
     const status = GameController.getStatus();
+
     renderGameboard(status);
-    renderStatusboard(status);
+
+    if (status.gameOver) {
+      showDialog();
+    }
 
     function renderGameboard({ board }) {
       const cellButtons = gameboardNode.querySelectorAll(".cell");
@@ -169,21 +176,22 @@ const DisplayController = (function () {
       });
     }
 
-    function renderStatusboard({ currentPlayer, gameOver, winner }) {
+    function renderDialog({ winner }) {
       let message = "";
-      if (!gameOver) {
-        const currentPlayerMarker = currentPlayer.getMarker();
-        message = `Next move: ${currentPlayerMarker.toUpperCase()}`;
+
+      if (winner) {
+        const winnerMarker = winner.getMarker();
+        message = `${winnerMarker.toUpperCase()} wins.`;
       } else {
-        message = "Game over. ";
-        if (winner) {
-          const winnerMarker = winner.getMarker();
-          message += `${winnerMarker.toUpperCase()} wins.`;
-        } else {
-          message += "Tie.";
-        }
+        message = "Tie.";
       }
-      statusboardNode.textContent = message;
+
+      messageNode.textContent = message;
+    }
+
+    function showDialog() {
+      renderDialog(status);
+      dialogNode.showModal();
     }
   }
 
