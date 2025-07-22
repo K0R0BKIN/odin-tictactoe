@@ -170,7 +170,10 @@ const DisplayController = (function () {
     function renderGameboard({ board }) {
       const cellButtons = gameboardNode.querySelectorAll(".cell");
       cellButtons.forEach((node, index) => {
-        node.textContent = board[index]?.toUpperCase();
+        const marker = board[index];
+        node.innerHTML = marker
+          ? `<img src="assets/${marker}.svg" class="glyph" />`
+          : "";
       });
     }
 
