@@ -6,6 +6,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 32px;
+
+  font-family: system-ui, sans-serif;
 }
 
 #gameboard {
