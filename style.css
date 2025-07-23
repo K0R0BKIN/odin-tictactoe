@@ -12,8 +12,9 @@ body {
 
 #gameboard {
   display: grid;
-  grid-template-rows: repeat(3, 64px);
-  grid-template-columns: repeat(3, 64px);
+  --cell-size: 100px;
+  grid-template-rows: repeat(3, var(--cell-size));
+  grid-template-columns: repeat(3, var(--cell-size));
   grid-template-areas:
     "1 2 3"
     "4 5 6"
