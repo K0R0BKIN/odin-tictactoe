@@ -194,12 +194,21 @@ const DisplayController = (function () {
 
       if (winner) {
         const winnerMarker = winner.getMarker();
-        message = `${winnerMarker.toUpperCase()} wins.`;
+        const markerSpan = buildMarkerSpan(winnerMarker);
+        message = `${markerSpan.outerHTML} wins.`;
       } else {
         message = "Tie.";
       }
 
-      messageNode.textContent = message;
+      messageNode.innerHTML = message;
+    }
+
+    function buildMarkerSpan(marker) {
+      const node = document.createElement("span");
+      node.className = "marker-span";
+      node.dataset.marker = marker;
+      node.textContent = `${marker.toUpperCase()}`;
+      return node;
     }
 
     function showDialog() {

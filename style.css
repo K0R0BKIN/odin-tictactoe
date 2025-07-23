@@ -1,3 +1,8 @@
+:root {
+  --x-color: red;
+  --o-color: blue;
+}
+
 body {
   height: 100vh;
 
@@ -61,6 +66,14 @@ p {
   text-align: center;
 
   margin-bottom: 16px;
+}
+
+.marker-span[data-marker="x"] {
+  color: var(--x-color);
+}
+
+.marker-span[data-marker="o"] {
+  color: var(--o-color);
 }
 
 .button {
