@@ -30,6 +30,21 @@ body {
   background-color: hsl(0, 0%, 100%);
 
   border: none;
+
+  position: relative;
+  cursor: pointer;
+}
+
+.glyph {
+  pointer-events: none;
+}
+
+.glyph.preview {
+  opacity: 0;
+}
+
+.cell.empty:hover .glyph.preview {
+  opacity: 0.2;
 }
 
 #dialog {

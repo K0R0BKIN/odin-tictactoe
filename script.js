@@ -143,9 +143,9 @@ const DisplayController = (function () {
     }
 
     function handleMove({ target }) {
-      const isCell = target.classList.contains("cell");
-      if (isCell) {
-        const index = Number(target.dataset.index);
+      const cellNode = target.closest(".cell");
+      if (cellNode) {
+        const index = Number(cellNode.dataset.index);
         GameController.playRound(index);
         render();
       }
@@ -167,14 +167,26 @@ const DisplayController = (function () {
       showDialog();
     }
 
-    function renderGameboard({ board }) {
+    function renderGameboard({ board, currentPlayer }) {
       const cellButtons = gameboardNode.querySelectorAll(".cell");
+      const currentMarker = currentPlayer.getMarker();
+
       cellButtons.forEach((node, index) => {
         const marker = board[index];
-        node.innerHTML = marker
-          ? `<img src="assets/${marker}.svg" class="glyph" />`
-          : "";
+
+        const isEmpty = !marker;
+        node.classList.toggle("empty", isEmpty);
+
+        const markerImage = buildMarkerImage(marker || currentMarker, isEmpty);
+        node.replaceChildren(markerImage);
       });
+    }
+
+    function buildMarkerImage(marker, preview = false) {
+      const node = document.createElement("img");
+      node.src = `assets/${marker}.svg`;
+      node.className = `glyph ${preview ? "preview" : ""}`;
+      return node;
     }
 
     function renderDialog({ winner }) {
