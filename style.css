@@ -33,6 +33,7 @@ body {
 
   position: relative;
   cursor: pointer;
+  outline: none;
 }
 
 .glyph {
