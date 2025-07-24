@@ -50,6 +50,12 @@ body {
 
 #dialog {
   width: 15rem;
+
+  margin-top: 5rem;
+}
+
+#dialog::backdrop {
+  background-color: transparent;
 }
 
 p {
