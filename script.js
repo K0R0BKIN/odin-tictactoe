@@ -77,7 +77,6 @@ const GameController = (function () {
       [0, 4, 8],
       [2, 4, 6],
     ];
-    let winner;
 
     const currentMarker = currentPlayer.getMarker();
     for (const pattern of WIN_PATTERNS) {
@@ -85,13 +84,13 @@ const GameController = (function () {
         (index) => board[index] === currentMarker
       );
       if (matchesMarker) {
-        return (winner = currentPlayer);
+        return currentPlayer;
       }
     }
 
     const boardFull = board.every((marker) => marker);
     if (boardFull) {
-      return (winner = null);
+      return null;
     }
 
     return undefined;
