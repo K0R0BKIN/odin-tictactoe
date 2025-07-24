@@ -92,7 +92,11 @@ const GameController = (function () {
         (index) => board[index] === currentMarker
       );
       if (matchesMarker) {
-        return currentPlayer;
+        return {
+          player: currentPlayer,
+          marker: currentMarker,
+          pattern: pattern,
+        };
       }
     }
 
@@ -174,7 +178,7 @@ const DisplayController = (function () {
       showDialog();
     }
 
-    function renderGameboard({ board, currentPlayer }) {
+    function renderGameboard({ board, currentPlayer, gameOver, winner }) {
       const cellButtons = gameboardNode.querySelectorAll(".cell");
       const currentMarker = currentPlayer.getMarker();
 
@@ -185,6 +189,8 @@ const DisplayController = (function () {
         node.classList.toggle("empty", isEmpty);
 
         const markerImage = buildMarkerImage(marker || currentMarker, isEmpty);
+        const isWinning = winner?.pattern.includes(index);
+        markerImage.classList.toggle("dimmed", gameOver && !isWinning);
         node.replaceChildren(markerImage);
       });
     }
@@ -206,9 +212,7 @@ const DisplayController = (function () {
       }
     }
 
-    function buildPlayerNameSpan(player) {
-      const marker = player.getMarker();
-
+    function buildPlayerNameSpan({ player, marker }) {
       const node = document.createElement("span");
       node.className = "player-name";
       node.dataset.marker = marker.id;
