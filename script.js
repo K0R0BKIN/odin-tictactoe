@@ -16,12 +16,19 @@ const Gameboard = (function () {
   return { setCell, getBoard, init };
 })();
 
-function createPlayer(marker) {
-  function getMarker() {
-    return marker;
-  }
+const MARKERS = {
+  x: { color: "red", glyphPath: "/assets/x.svg" },
+  o: { color: "blue", glyphPath: "/assets/o.svg" },
+};
 
-  return { getMarker };
+function createPlayer(markerId) {
+  const name = markerId.toUpperCase();
+  const marker = { ...MARKERS[markerId], id: markerId };
+
+  return {
+    getName: () => name,
+    getMarker: () => marker,
+  };
 }
 
 const GameController = (function () {
@@ -45,7 +52,8 @@ const GameController = (function () {
     const moveIllegal = !validateMove(index, status);
     if (moveIllegal) return;
 
-    const marker = status.currentPlayer.getMarker();
+    const { currentPlayer } = status;
+    const marker = currentPlayer.getMarker();
     Gameboard.setCell(index, marker);
 
     winner = checkWinner(status);
@@ -59,7 +67,7 @@ const GameController = (function () {
   function validateMove(index, { board, gameOver }) {
     const illegalMoves = {
       gameOver,
-      cellOccupied: board[index],
+      cellOccupied: board[index] !== null,
     };
     const isIllegal = Object.values(illegalMoves).some(Boolean);
     return !isIllegal;
@@ -88,7 +96,7 @@ const GameController = (function () {
       }
     }
 
-    const boardFull = board.every((marker) => marker);
+    const boardFull = board.every((marker) => marker !== null);
     if (boardFull) {
       return null;
     }
@@ -173,7 +181,7 @@ const DisplayController = (function () {
       cellButtons.forEach((node, index) => {
         const marker = board[index];
 
-        const isEmpty = !marker;
+        const isEmpty = marker === null;
         node.classList.toggle("empty", isEmpty);
 
         const markerImage = buildMarkerImage(marker || currentMarker, isEmpty);
@@ -183,30 +191,29 @@ const DisplayController = (function () {
 
     function buildMarkerImage(marker, preview = false) {
       const node = document.createElement("img");
-      node.src = `assets/${marker}.svg`;
-      node.className = `glyph ${preview ? "preview" : ""}`;
+      node.src = marker.glyphPath;
+      node.className = "glyph";
+      node.classList.toggle("preview", preview);
       return node;
     }
 
     function renderDialog({ winner }) {
-      let message = "";
-
       if (winner) {
-        const winnerMarker = winner.getMarker();
-        const markerSpan = buildMarkerSpan(winnerMarker);
-        message = `${markerSpan.outerHTML} wins.`;
+        const playerNameSpan = buildPlayerNameSpan(winner);
+        messageNode.replaceChildren(playerNameSpan, " wins.");
       } else {
-        message = "Tie.";
+        messageNode.replaceChildren("Tie.");
       }
-
-      messageNode.innerHTML = message;
     }
 
-    function buildMarkerSpan(marker) {
+    function buildPlayerNameSpan(player) {
+      const marker = player.getMarker();
+
       const node = document.createElement("span");
-      node.className = "marker-span";
-      node.dataset.marker = marker;
-      node.textContent = `${marker.toUpperCase()}`;
+      node.className = "player-name";
+      node.dataset.marker = marker.id;
+      node.textContent = player.getName();
+      node.style.color = marker.color;
       return node;
     }
 
