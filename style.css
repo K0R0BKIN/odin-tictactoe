@@ -80,24 +80,28 @@ p {
 }
 
 .button {
-  color: hsl(0, 80%, 50%);
+  --accent-color: hsl(0, 0%, 0%);
+  --text-invert: hsl(0, 0%, 100%);
+
   background-color: hsl(0, 0%, 100%);
-  border: 2px solid hsl(0, 80%, 50%);
+  border: 2px solid var(--accent-color);
 
   padding: 8px;
 
+  color: var(--accent-color);
   line-height: 1;
   cursor: pointer;
 }
 
 .button:hover {
-  color: hsl(0, 0%, 100%);
-  background-color: hsl(0, 80%, 50%);
+  background-color: var(--accent-color);
+  color: var(--text-invert);
   border-color: transparent;
 }
 
 #reset-button {
-  width: 100%;
+  --accent-color: hsl(0, 80%, 50%);
 
+  width: 100%;
   font-size: 20px;
 }
