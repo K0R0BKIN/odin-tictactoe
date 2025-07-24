@@ -40,6 +40,10 @@ body {
   cursor: pointer;
 }
 
+.cell:disabled {
+  cursor: default;
+}
+
 .glyph {
   pointer-events: none;
 }

@@ -49,6 +49,7 @@ const GameController = (function () {
   function playRound(index) {
     const status = getStatus();
 
+    // The UI blocks illegal moves; this is just a nice‑to‑have fallback.
     const moveIllegal = !validateMove(index, status);
     if (moveIllegal) return;
 
@@ -187,6 +188,7 @@ const DisplayController = (function () {
 
         const isEmpty = marker === null;
         node.classList.toggle("empty", isEmpty);
+        node.toggleAttribute("disabled", !isEmpty || gameOver);
 
         const markerImage = buildMarkerImage(marker || currentMarker, isEmpty);
         const isWinning = winner?.pattern.includes(index);
