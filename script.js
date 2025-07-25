@@ -7,7 +7,6 @@ const Gameboard = (function () {
 
   function setCell(index, marker) {
     board[index] = marker;
-    return GameController.getStatus();
   }
 
   function getBoard() {
@@ -45,30 +44,25 @@ const GameController = (function () {
     currentPlayer = players[0];
     gameOver = false;
     winner = undefined;
-
-    return getStatus();
   }
 
   function playRound(index) {
-    let status = getStatus();
-
     // The UI blocks illegal moves; this is just a nice‑to‑have fallback.
-    const moveIllegal = !validateMove(index, status);
-    if (moveIllegal) return null;
+    const moveIllegal = !validateMove(index);
+    if (moveIllegal) return;
 
-    const marker = status.currentPlayer.getMarker();
-    status = Gameboard.setCell(index, marker);
+    const marker = currentPlayer.getMarker();
+    Gameboard.setCell(index, marker);
 
-    status = checkWinner(status);
-    if (status.winner === undefined) {
-      status = switchPlayer();
+    checkWinner();
+    if (winner === undefined) {
+      switchPlayer();
     } else {
       gameOver = true;
     }
 
-    return getStatus();
-
-    function validateMove(index, { board, gameOver }) {
+    function validateMove(index) {
+      const board = Gameboard.getBoard();
       const illegalMoves = {
         gameOver,
         cellOccupied: board[index] !== null,
@@ -77,7 +71,7 @@ const GameController = (function () {
       return !isIllegal;
     }
 
-    function checkWinner(status) {
+    function checkWinner() {
       const WIN_PATTERNS = [
         [0, 1, 2],
         [3, 4, 5],
@@ -89,8 +83,8 @@ const GameController = (function () {
         [2, 4, 6],
       ];
 
-      const { board, currentPlayer } = status;
-      const currentMarker = status.currentPlayer.getMarker();
+      const board = Gameboard.getBoard();
+      const currentMarker = currentPlayer.getMarker();
       for (const pattern of WIN_PATTERNS) {
         const matchesMarker = pattern.every(
           (index) => board[index] === currentMarker
@@ -101,22 +95,19 @@ const GameController = (function () {
             marker: currentMarker,
             pattern: pattern,
           };
-          return getStatus();
+          return;
         }
       }
 
       const boardFull = board.every((marker) => marker !== null);
       if (boardFull) {
         winner = null;
-        return getStatus();
+        return;
       }
-
-      return status;
     }
 
     function switchPlayer() {
       currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
-      return getStatus();
     }
   }
 
@@ -139,13 +130,13 @@ const DisplayController = (function () {
   const messageParagraph = dialog.querySelector("#message");
   const resetButton = dialog.querySelector("#reset-button");
 
-  function init(status) {
-    buildGameboard(status);
+  function init() {
+    buildGameboard();
 
     gameboardContainer.addEventListener("click", handleMove);
     resetButton.addEventListener("click", handleReset);
 
-    render(status);
+    render();
 
     function buildCell(index) {
       const node = document.createElement("button");
@@ -154,7 +145,8 @@ const DisplayController = (function () {
       return node;
     }
 
-    function buildGameboard({ board }) {
+    function buildGameboard() {
+      const board = Gameboard.getBoard();
       const cellButtons = board.map((_, index) => buildCell(index));
       gameboardContainer.append(...cellButtons);
     }
@@ -163,22 +155,22 @@ const DisplayController = (function () {
       const cellNode = target.closest(".cell");
       if (cellNode) {
         const index = Number(cellNode.dataset.index);
-        const currentRound = GameController.playRound(index);
-        render(currentRound);
+        GameController.playRound(index);
+        render();
       }
     }
 
     function handleReset() {
       dialog.close();
 
-      const gameStart = GameController.init();
-      render(gameStart);
+      GameController.init();
+      render();
     }
   }
 
-  function render(status) {
-    if (status === null) return;
-    
+  function render() {
+    const status = GameController.getStatus();
+
     renderGameboard(status);
 
     if (status.gameOver) {
@@ -234,5 +226,5 @@ const DisplayController = (function () {
   return { init, render };
 })();
 
-const gameStart = GameController.init();
-DisplayController.init(gameStart);
+GameController.init();
+DisplayController.init();
