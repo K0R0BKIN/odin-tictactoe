@@ -54,7 +54,7 @@ const GameController = (function () {
 
     // The UI blocks illegal moves; this is just a nice‑to‑have fallback.
     const moveIllegal = !validateMove(index, status);
-    if (moveIllegal) return;
+    if (moveIllegal) return null;
 
     const marker = status.currentPlayer.getMarker();
     status = Gameboard.setCell(index, marker);
@@ -172,8 +172,9 @@ const DisplayController = (function () {
     }
   }
 
-
   function render(status) {
+    if (status === null) return;
+    
     renderGameboard(status);
 
     if (status.gameOver) {
