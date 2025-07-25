@@ -7,6 +7,7 @@ const Gameboard = (function () {
 
   function setCell(index, marker) {
     board[index] = marker;
+    return GameController.getStatus();
   }
 
   function getBoard() {
@@ -44,6 +45,8 @@ const GameController = (function () {
     currentPlayer = players[0];
     gameOver = false;
     winner = undefined;
+
+    return getStatus();
   }
 
   function playRound(index) {
@@ -53,9 +56,8 @@ const GameController = (function () {
     const moveIllegal = !validateMove(index, status);
     if (moveIllegal) return;
 
-    const { currentPlayer } = status;
-    const marker = currentPlayer.getMarker();
-    Gameboard.setCell(index, marker);
+    const marker = status.currentPlayer.getMarker();
+    status = Gameboard.setCell(index, marker);
 
     winner = checkWinner(status);
     if (winner === undefined) {
@@ -63,54 +65,55 @@ const GameController = (function () {
     } else {
       gameOver = true;
     }
-  }
 
-  function validateMove(index, { board, gameOver }) {
-    const illegalMoves = {
-      gameOver,
-      cellOccupied: board[index] !== null,
-    };
-    const isIllegal = Object.values(illegalMoves).some(Boolean);
-    return !isIllegal;
-  }
+    return status;
 
-  function checkWinner({ currentPlayer }) {
-    const { board } = getStatus();
-    const WIN_PATTERNS = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
+    function validateMove(index, { board, gameOver }) {
+      const illegalMoves = {
+        gameOver,
+        cellOccupied: board[index] !== null,
+      };
+      const isIllegal = Object.values(illegalMoves).some(Boolean);
+      return !isIllegal;
+    }
 
-    const currentMarker = currentPlayer.getMarker();
-    for (const pattern of WIN_PATTERNS) {
-      const matchesMarker = pattern.every(
-        (index) => board[index] === currentMarker
-      );
-      if (matchesMarker) {
-        return {
-          player: currentPlayer,
-          marker: currentMarker,
-          pattern: pattern,
-        };
+    function checkWinner({ board, currentPlayer }) {
+      const WIN_PATTERNS = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      const currentMarker = currentPlayer.getMarker();
+      for (const pattern of WIN_PATTERNS) {
+        const matchesMarker = pattern.every(
+          (index) => board[index] === currentMarker
+        );
+        if (matchesMarker) {
+          return {
+            player: currentPlayer,
+            marker: currentMarker,
+            pattern: pattern,
+          };
+        }
       }
+
+      const boardFull = board.every((marker) => marker !== null);
+      if (boardFull) {
+        return null;
+      }
+
+      return undefined;
     }
 
-    const boardFull = board.every((marker) => marker !== null);
-    if (boardFull) {
-      return null;
+    function switchPlayer() {
+      currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
     }
-
-    return undefined;
-  }
-
-  function switchPlayer() {
-    currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
   }
 
   function getStatus() {
@@ -122,25 +125,23 @@ const GameController = (function () {
     };
   }
 
-  return { init, playRound, getStatus };
+  return { playRound, getStatus, init };
 })();
 
 const DisplayController = (function () {
-  const gameboardNode = document.querySelector("#gameboard");
+  const gameboardContainer = document.querySelector("#gameboard");
 
-  const dialogNode = document.querySelector("#dialog");
-  const messageNode = dialogNode.querySelector("#message");
-  const resetButton = dialogNode.querySelector("#reset-button");
+  const dialog = document.querySelector("#dialog");
+  const messageParagraph = dialog.querySelector("#message");
+  const resetButton = dialog.querySelector("#reset-button");
 
-  function init() {
-    const status = GameController.getStatus();
-
+  function init(status) {
     buildGameboard(status);
-    gameboardNode.addEventListener("click", handleMove);
 
+    gameboardContainer.addEventListener("click", handleMove);
     resetButton.addEventListener("click", handleReset);
 
-    render();
+    render(status);
 
     function buildCell(index) {
       const node = document.createElement("button");
@@ -151,36 +152,37 @@ const DisplayController = (function () {
 
     function buildGameboard({ board }) {
       const cellButtons = board.map((_, index) => buildCell(index));
-      gameboardNode.append(...cellButtons);
+      gameboardContainer.append(...cellButtons);
     }
 
     function handleMove({ target }) {
       const cellNode = target.closest(".cell");
       if (cellNode) {
         const index = Number(cellNode.dataset.index);
-        GameController.playRound(index);
-        render();
+        const currentRound = GameController.playRound(index);
+        render(currentRound);
       }
     }
 
     function handleReset() {
-      GameController.init();
-      render();
-      dialogNode.close();
+      dialog.close();
+
+      const gameStart = GameController.init();
+      render(gameStart);
     }
   }
 
-  function render() {
-    const status = GameController.getStatus();
 
+  function render(status) {
     renderGameboard(status);
 
     if (status.gameOver) {
-      showDialog();
+      renderDialog(status);
+      dialog.showModal();
     }
 
     function renderGameboard({ board, currentPlayer, gameOver, winner }) {
-      const cellButtons = gameboardNode.querySelectorAll(".cell");
+      const cellButtons = gameboardContainer.querySelectorAll(".cell");
       const currentMarker = currentPlayer.getMarker();
 
       cellButtons.forEach((node, index) => {
@@ -208,9 +210,9 @@ const DisplayController = (function () {
     function renderDialog({ winner }) {
       if (winner) {
         const playerNameSpan = buildPlayerNameSpan(winner);
-        messageNode.replaceChildren(playerNameSpan, " wins.");
+        messageParagraph.replaceChildren(playerNameSpan, " wins.");
       } else {
-        messageNode.replaceChildren("Tie.");
+        messageParagraph.replaceChildren("Tie.");
       }
     }
 
@@ -222,15 +224,10 @@ const DisplayController = (function () {
       node.style.color = marker.color;
       return node;
     }
-
-    function showDialog() {
-      renderDialog(status);
-      dialogNode.showModal();
-    }
   }
 
   return { init, render };
 })();
 
-GameController.init();
-DisplayController.init();
+const gameStart = GameController.init();
+DisplayController.init(gameStart);
