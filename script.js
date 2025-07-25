@@ -50,7 +50,7 @@ const GameController = (function () {
   }
 
   function playRound(index) {
-    const status = getStatus();
+    let status = getStatus();
 
     // The UI blocks illegal moves; this is just a nice‑to‑have fallback.
     const moveIllegal = !validateMove(index, status);
@@ -59,14 +59,14 @@ const GameController = (function () {
     const marker = status.currentPlayer.getMarker();
     status = Gameboard.setCell(index, marker);
 
-    winner = checkWinner(status);
-    if (winner === undefined) {
-      switchPlayer();
+    status = checkWinner(status);
+    if (status.winner === undefined) {
+      status = switchPlayer();
     } else {
       gameOver = true;
     }
 
-    return status;
+    return getStatus();
 
     function validateMove(index, { board, gameOver }) {
       const illegalMoves = {
@@ -77,7 +77,7 @@ const GameController = (function () {
       return !isIllegal;
     }
 
-    function checkWinner({ board, currentPlayer }) {
+    function checkWinner(status) {
       const WIN_PATTERNS = [
         [0, 1, 2],
         [3, 4, 5],
@@ -89,30 +89,34 @@ const GameController = (function () {
         [2, 4, 6],
       ];
 
-      const currentMarker = currentPlayer.getMarker();
+      const { board, currentPlayer } = status;
+      const currentMarker = status.currentPlayer.getMarker();
       for (const pattern of WIN_PATTERNS) {
         const matchesMarker = pattern.every(
           (index) => board[index] === currentMarker
         );
         if (matchesMarker) {
-          return {
+          winner = {
             player: currentPlayer,
             marker: currentMarker,
             pattern: pattern,
           };
+          return getStatus();
         }
       }
 
       const boardFull = board.every((marker) => marker !== null);
       if (boardFull) {
-        return null;
+        winner = null;
+        return getStatus();
       }
 
-      return undefined;
+      return status;
     }
 
     function switchPlayer() {
       currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
+      return getStatus();
     }
   }
 
