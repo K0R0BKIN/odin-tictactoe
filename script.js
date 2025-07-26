@@ -25,12 +25,14 @@ const MARKERS = {
       line1.setAttribute("y1", "10");
       line1.setAttribute("x2", "90");
       line1.setAttribute("y2", "90");
+      line1.setAttribute("vector-effect", "non-scaling-stroke");
 
       const line2 = document.createElementNS(svgNS, "line");
       line2.setAttribute("x1", "90");
       line2.setAttribute("y1", "10");
       line2.setAttribute("x2", "10");
       line2.setAttribute("y2", "90");
+      line2.setAttribute("vector-effect", "non-scaling-stroke");
 
       return [line1, line2];
     },
@@ -43,6 +45,7 @@ const MARKERS = {
       circle.setAttribute("cy", "50");
       circle.setAttribute("r", "48");
       circle.setAttribute("fill", "none");
+      circle.setAttribute("vector-effect", "non-scaling-stroke");
 
       return [circle];
     },
