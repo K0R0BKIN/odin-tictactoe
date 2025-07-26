@@ -17,8 +17,36 @@ const Gameboard = (function () {
 })();
 
 const MARKERS = {
-  x: { color: "red", glyphPath: "/assets/x.svg" },
-  o: { color: "blue", glyphPath: "/assets/o.svg" },
+  x: {
+    color: "red",
+    buildSVGShapes: (svgNS) => {
+      const line1 = document.createElementNS(svgNS, "line");
+      line1.setAttribute("x1", "10");
+      line1.setAttribute("y1", "10");
+      line1.setAttribute("x2", "90");
+      line1.setAttribute("y2", "90");
+
+      const line2 = document.createElementNS(svgNS, "line");
+      line2.setAttribute("x1", "90");
+      line2.setAttribute("y1", "10");
+      line2.setAttribute("x2", "10");
+      line2.setAttribute("y2", "90");
+
+      return [line1, line2];
+    },
+  },
+  o: {
+    color: "blue",
+    buildSVGShapes: (svgNS) => {
+      const circle = document.createElementNS(svgNS, "circle");
+      circle.setAttribute("cx", "50");
+      circle.setAttribute("cy", "50");
+      circle.setAttribute("r", "48");
+      circle.setAttribute("fill", "none");
+
+      return [circle];
+    },
+  },
 };
 
 function createPlayer(markerId) {
@@ -189,18 +217,27 @@ const DisplayController = (function () {
         node.classList.toggle("empty", isEmpty);
         node.toggleAttribute("disabled", !isEmpty || gameOver);
 
-        const markerImage = buildMarkerImage(marker || currentMarker, isEmpty);
+        const markerSVG = buildMarkerSVG(marker || currentMarker, isEmpty);
         const isWinning = winner?.pattern.includes(index);
-        markerImage.classList.toggle("dimmed", gameOver && !isWinning);
-        node.replaceChildren(markerImage);
+        markerSVG.classList.toggle("dimmed", gameOver && !isWinning);
+        node.replaceChildren(markerSVG);
       });
     }
 
-    function buildMarkerImage(marker, preview = false) {
-      const node = document.createElement("img");
-      node.src = marker.glyphPath;
-      node.className = "glyph";
+    function buildMarkerSVG(marker, preview = false) {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const node = document.createElementNS(svgNS, "svg");
+      node.setAttribute("class", "glyph");
       node.classList.toggle("preview", preview);
+
+      node.setAttribute("viewBox", "0 0 100 100");
+      node.setAttribute("stroke-width", "2");
+      node.setAttribute("stroke", marker.color);
+      node.setAttribute("stroke-linecap", "round");
+
+      const shapes = marker.buildSVGShapes(svgNS);
+      node.append(...shapes);
+
       return node;
     }
 
