@@ -54,11 +54,14 @@ const MARKERS = {
 
 function createPlayer(name, markerId, AI = false) {
   const marker = { ...MARKERS[markerId], id: markerId };
+  let isThinking = false;
 
   return {
     getName: () => name,
     getMarker: () => marker,
     isAI: () => AI,
+    isThinking: () => isThinking,
+    setThinking: (arg) => isThinking = arg,
   };
 }
 
@@ -147,9 +150,12 @@ const GameController = (function () {
 
     function handleAIMove() {
       if (gameOver) return;
+
+      currentPlayer.setThinking(true);
       setTimeout(() => {
         const AIMove = getRandomMove();
         playRound(AIMove);
+        currentPlayer.setThinking(false);
         DisplayController.render();
       }, 300);
 
