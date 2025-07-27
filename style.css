@@ -91,7 +91,8 @@ body {
   --accent-color: hsl(0, 0%, 0%);
   --text-invert: hsl(0, 0%, 100%);
 
-  font-size: 20px;
+  font-size: 24px;
+  font-weight: 300;
   line-height: 1;
 
   color: var(--accent-color);
@@ -110,4 +111,6 @@ body {
 
 #reset-button {
   --accent-color: hsl(0, 80%, 50%);
+
+  width: 100%;
 }
