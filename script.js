@@ -260,7 +260,7 @@ const DisplayController = (function () {
         function renderMessage(winner) {
           if (winner) {
             const playerNameSpan = buildPlayerNameSpan(winner);
-            messageParagraph.replaceChildren(playerNameSpan, " wins.");
+            messageParagraph.replaceChildren(playerNameSpan, " wins!");
           } else {
             messageParagraph.replaceChildren("Tie.");
           }
