@@ -52,13 +52,13 @@ const MARKERS = {
   },
 };
 
-function createPlayer(markerId) {
-  const name = markerId.toUpperCase();
+function createPlayer(name, markerId, AI = false) {
   const marker = { ...MARKERS[markerId], id: markerId };
 
   return {
     getName: () => name,
     getMarker: () => marker,
+    isAI: () => AI,
   };
 }
 
@@ -70,7 +70,7 @@ const GameController = (function () {
 
   function init() {
     Gameboard.init();
-    players = [createPlayer("x"), createPlayer("o")];
+    players = [createPlayer("Human", "x"), createPlayer("Computer", "o", true)];
 
     currentPlayer = players[0];
     gameOver = false;
@@ -88,6 +88,10 @@ const GameController = (function () {
     checkWinner();
     if (winner === undefined) {
       switchPlayer();
+
+      if (currentPlayer.isAI()) {
+        handleAIMove();
+      }
     } else {
       gameOver = true;
     }
@@ -140,6 +144,24 @@ const GameController = (function () {
     function switchPlayer() {
       currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
     }
+
+    function handleAIMove() {
+      const AIMove = getRandomMove();
+      playRound(AIMove);
+      DisplayController.render();
+
+      function getRandomMove() {
+        const board = Gameboard.getBoard();
+        const emptyCellIndices = board.reduce((acc, marker, index) => {
+          if (marker === null) acc.push(index);
+          return acc;
+        }, []);
+        const randomEmptyCellIndex = Math.floor(
+          Math.random() * emptyCellIndices.length
+        );
+        return emptyCellIndices[randomEmptyCellIndex];
+      }
+    }
   }
 
   function getStatus() {
@@ -173,7 +195,7 @@ const DisplayController = (function () {
       const cellButtons = board.map((_, index) => buildCell(index));
       gameboardContainer.append(...cellButtons);
 
-      gameboardContainer.addEventListener("click", handleMove);
+      gameboardContainer.addEventListener("click", handleHumanMove);
 
       function buildCell(index) {
         const node = document.createElement("button");
@@ -182,7 +204,7 @@ const DisplayController = (function () {
         return node;
       }
 
-      function handleMove({ target }) {
+      function handleHumanMove({ target }) {
         const cellNode = target.closest(".cell");
         if (cellNode) {
           const index = Number(cellNode.dataset.index);
