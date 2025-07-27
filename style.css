@@ -31,9 +31,7 @@ body {
 
 .cell {
   padding: 16px;
-
   background-color: hsl(0, 0%, 100%);
-
   border: none;
 
   cursor: pointer;
@@ -61,7 +59,6 @@ body {
 
 #message {
   font-size: 24px;
-
   margin: 0;
 }
 
