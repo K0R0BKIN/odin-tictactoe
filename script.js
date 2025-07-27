@@ -61,7 +61,7 @@ function createPlayer(name, markerId, AI = false) {
     getMarker: () => marker,
     isAI: () => AI,
     isThinking: () => isThinking,
-    setThinking: (arg) => isThinking = arg,
+    setThinking: (arg) => (isThinking = arg),
   };
 }
 
@@ -236,18 +236,21 @@ const DisplayController = (function () {
 
       cellButtons.forEach((node, index) => {
         const marker = board[index];
+        const markerAssigned = marker !== null;
 
-        const isEmpty = marker === null;
-        node.classList.toggle("empty", isEmpty);
-        node.toggleAttribute("disabled", !isEmpty || gameOver);
+        node.classList.toggle("empty", !markerAssigned);
+        node.toggleAttribute("disabled", markerAssigned || gameOver);
 
-        const markerSVG = buildMarkerSVG(marker || currentMarker, isEmpty);
+        const markerSVG = buildGlyphSVG(
+          marker || currentMarker,
+          !markerAssigned
+        );
         const isWinning = winner?.pattern.includes(index);
         markerSVG.classList.toggle("dimmed", gameOver && !isWinning);
         node.replaceChildren(markerSVG);
       });
 
-      function buildMarkerSVG(marker, preview = false) {
+      function buildGlyphSVG(marker, preview = false) {
         const svgNS = "http://www.w3.org/2000/svg";
         const node = document.createElementNS(svgNS, "svg");
         node.setAttribute("class", "glyph");
