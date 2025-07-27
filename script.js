@@ -157,6 +157,12 @@ const GameController = (function () {
 const DisplayController = (function () {
   const gameboardContainer = document.querySelector("#gameboard");
 
+  const statusContainer = document.querySelector("#status");
+  const messageParagraph = statusContainer.querySelector("#message");
+
+  const controlsContainer = document.querySelector("#controls");
+  const resetButton = controlsContainer.querySelector("#reset-button");
+
   function init() {
     buildGameboard();
 
@@ -166,6 +172,7 @@ const DisplayController = (function () {
       const board = Gameboard.getBoard();
       const cellButtons = board.map((_, index) => buildCell(index));
       gameboardContainer.append(...cellButtons);
+
       gameboardContainer.addEventListener("click", handleMove);
 
       function buildCell(index) {
@@ -190,8 +197,7 @@ const DisplayController = (function () {
     const status = GameController.getStatus();
 
     renderGameboard(status);
-
-    if (status.gameOver) renderGameOver(status);
+    renderGameOver(status);
 
     function renderGameboard({ board, currentPlayer, gameOver, winner }) {
       const cellButtons = gameboardContainer.querySelectorAll(".cell");
@@ -228,52 +234,57 @@ const DisplayController = (function () {
       }
     }
 
-    function renderGameOver({ winner }) {
-      const statusContainer = document.createElement("div");
-      statusContainer.id = "status";
+    function renderGameOver(status) {
+      renderStatus(status);
+      renderControls(status.gameOver);
 
-      const messageParagraph = document.createElement("p");
-      messageParagraph.id = "message";
-      renderMessage(winner);
-      statusContainer.append(messageParagraph);
+      function renderStatus(status) {
+        if (!status.gameOver) {
+          statusContainer.style.visibility = "hidden";
+          return;
+        }
 
-      const controlsContainer = document.createElement("div");
-      controlsContainer.id = "controls";
+        renderMessage(status.winner);
 
-      const resetButton = document.createElement("button");
-      resetButton.classList.add("button");
-      resetButton.id = "reset-button";
-      resetButton.textContent = "Reset";
-      resetButton.addEventListener("click", handleReset);
-      controlsContainer.append(resetButton);
+        statusContainer.style.visibility = "visible";
 
-      gameboardContainer.before(statusContainer);
-      gameboardContainer.after(controlsContainer);
+        function buildPlayerNameSpan({ player, marker }) {
+          const node = document.createElement("span");
+          node.className = "player-name";
+          node.dataset.marker = marker.id;
+          node.textContent = player.getName();
+          node.style.color = marker.color;
+          return node;
+        }
 
-      function renderMessage(winner) {
-        if (winner) {
-          const playerNameSpan = buildPlayerNameSpan(winner);
-          messageParagraph.replaceChildren(playerNameSpan, " wins.");
-        } else {
-          messageParagraph.replaceChildren("Tie.");
+        function renderMessage(winner) {
+          if (winner) {
+            const playerNameSpan = buildPlayerNameSpan(winner);
+            messageParagraph.replaceChildren(playerNameSpan, " wins.");
+          } else {
+            messageParagraph.replaceChildren("Tie.");
+          }
         }
       }
 
-      function buildPlayerNameSpan({ player, marker }) {
-        const node = document.createElement("span");
-        node.className = "player-name";
-        node.dataset.marker = marker.id;
-        node.textContent = player.getName();
-        node.style.color = marker.color;
-        return node;
-      }
+      function renderControls(gameOver) {
+        if (!gameOver) {
+          controlsContainer.style.visibility = "hidden";
+          return;
+        }
 
-      function handleReset() {
-        GameController.init();
-        statusContainer.remove();
-        controlsContainer.remove();
+        renderResetButton();
 
-        render();
+        controlsContainer.style.visibility = "visible";
+
+        function renderResetButton() {
+          resetButton.addEventListener("click", handleReset, { once: true });
+        }
+
+        function handleReset() {
+          GameController.init();
+          render();
+        }
       }
     }
   }
