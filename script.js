@@ -146,9 +146,12 @@ const GameController = (function () {
     }
 
     function handleAIMove() {
-      const AIMove = getRandomMove();
-      playRound(AIMove);
-      DisplayController.render();
+      if (gameOver) return;
+      setTimeout(() => {
+        const AIMove = getRandomMove();
+        playRound(AIMove);
+        DisplayController.render();
+      }, 300);
 
       function getRandomMove() {
         const board = Gameboard.getBoard();
