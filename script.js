@@ -238,7 +238,7 @@ const DisplayController = (function () {
         const marker = board[index];
         const markerAssigned = marker !== null;
 
-        node.classList.toggle("empty", !markerAssigned);
+        node.classList.toggle("empty", !markerAssigned && !gameOver);
         node.toggleAttribute("disabled", markerAssigned || gameOver);
 
         const markerSVG = buildGlyphSVG(
