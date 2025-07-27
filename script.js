@@ -157,45 +157,32 @@ const GameController = (function () {
 const DisplayController = (function () {
   const gameboardContainer = document.querySelector("#gameboard");
 
-  const dialog = document.querySelector("#dialog");
-  const messageParagraph = dialog.querySelector("#message");
-  const resetButton = dialog.querySelector("#reset-button");
-
   function init() {
     buildGameboard();
 
-    gameboardContainer.addEventListener("click", handleMove);
-    resetButton.addEventListener("click", handleReset);
-
     render();
-
-    function buildCell(index) {
-      const node = document.createElement("button");
-      node.className = "cell";
-      node.dataset.index = index;
-      return node;
-    }
 
     function buildGameboard() {
       const board = Gameboard.getBoard();
       const cellButtons = board.map((_, index) => buildCell(index));
       gameboardContainer.append(...cellButtons);
-    }
+      gameboardContainer.addEventListener("click", handleMove);
 
-    function handleMove({ target }) {
-      const cellNode = target.closest(".cell");
-      if (cellNode) {
-        const index = Number(cellNode.dataset.index);
-        GameController.playRound(index);
-        render();
+      function buildCell(index) {
+        const node = document.createElement("button");
+        node.className = "cell";
+        node.dataset.index = index;
+        return node;
       }
-    }
 
-    function handleReset() {
-      dialog.close();
-
-      GameController.init();
-      render();
+      function handleMove({ target }) {
+        const cellNode = target.closest(".cell");
+        if (cellNode) {
+          const index = Number(cellNode.dataset.index);
+          GameController.playRound(index);
+          render();
+        }
+      }
     }
   }
 
@@ -204,10 +191,7 @@ const DisplayController = (function () {
 
     renderGameboard(status);
 
-    if (status.gameOver) {
-      renderDialog(status);
-      dialog.showModal();
-    }
+    if (status.gameOver) renderGameOver(status);
 
     function renderGameboard({ board, currentPlayer, gameOver, winner }) {
       const cellButtons = gameboardContainer.querySelectorAll(".cell");
@@ -225,41 +209,72 @@ const DisplayController = (function () {
         markerSVG.classList.toggle("dimmed", gameOver && !isWinning);
         node.replaceChildren(markerSVG);
       });
-    }
 
-    function buildMarkerSVG(marker, preview = false) {
-      const svgNS = "http://www.w3.org/2000/svg";
-      const node = document.createElementNS(svgNS, "svg");
-      node.setAttribute("class", "glyph");
-      node.classList.toggle("preview", preview);
+      function buildMarkerSVG(marker, preview = false) {
+        const svgNS = "http://www.w3.org/2000/svg";
+        const node = document.createElementNS(svgNS, "svg");
+        node.setAttribute("class", "glyph");
+        node.classList.toggle("preview", preview);
 
-      node.setAttribute("viewBox", "0 0 100 100");
-      node.setAttribute("stroke-width", "2");
-      node.setAttribute("stroke", marker.color);
-      node.setAttribute("stroke-linecap", "round");
+        node.setAttribute("viewBox", "0 0 100 100");
+        node.setAttribute("stroke-width", "2");
+        node.setAttribute("stroke", marker.color);
+        node.setAttribute("stroke-linecap", "round");
 
-      const shapes = marker.buildSVGShapes(svgNS);
-      node.append(...shapes);
+        const shapes = marker.buildSVGShapes(svgNS);
+        node.append(...shapes);
 
-      return node;
-    }
-
-    function renderDialog({ winner }) {
-      if (winner) {
-        const playerNameSpan = buildPlayerNameSpan(winner);
-        messageParagraph.replaceChildren(playerNameSpan, " wins.");
-      } else {
-        messageParagraph.replaceChildren("Tie.");
+        return node;
       }
     }
 
-    function buildPlayerNameSpan({ player, marker }) {
-      const node = document.createElement("span");
-      node.className = "player-name";
-      node.dataset.marker = marker.id;
-      node.textContent = player.getName();
-      node.style.color = marker.color;
-      return node;
+    function renderGameOver({ winner }) {
+      const statusContainer = document.createElement("div");
+      statusContainer.id = "status";
+
+      const messageParagraph = document.createElement("p");
+      messageParagraph.id = "message";
+      renderMessage(winner);
+      statusContainer.append(messageParagraph);
+
+      const controlsContainer = document.createElement("div");
+      controlsContainer.id = "controls";
+
+      const resetButton = document.createElement("button");
+      resetButton.classList.add("button");
+      resetButton.id = "reset-button";
+      resetButton.textContent = "Reset";
+      resetButton.addEventListener("click", handleReset);
+      controlsContainer.append(resetButton);
+
+      gameboardContainer.before(statusContainer);
+      gameboardContainer.after(controlsContainer);
+
+      function renderMessage(winner) {
+        if (winner) {
+          const playerNameSpan = buildPlayerNameSpan(winner);
+          messageParagraph.replaceChildren(playerNameSpan, " wins.");
+        } else {
+          messageParagraph.replaceChildren("Tie.");
+        }
+      }
+
+      function buildPlayerNameSpan({ player, marker }) {
+        const node = document.createElement("span");
+        node.className = "player-name";
+        node.dataset.marker = marker.id;
+        node.textContent = player.getName();
+        node.style.color = marker.color;
+        return node;
+      }
+
+      function handleReset() {
+        GameController.init();
+        statusContainer.remove();
+        controlsContainer.remove();
+
+        render();
+      }
     }
   }
 

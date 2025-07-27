@@ -1,5 +1,4 @@
-button,
-dialog {
+button {
   outline: none;
 }
 
@@ -37,7 +36,6 @@ body {
 
   border: none;
 
-  position: relative;
   cursor: pointer;
 }
 
@@ -61,52 +59,33 @@ body {
   filter: grayscale(100%) opacity(0.2);
 }
 
-#dialog {
-  width: 15rem;
-
-  border-width: 2px;
-
-  margin-top: 5rem;
-}
-
-#dialog::backdrop {
-  background-color: transparent;
-}
-
-p {
-  margin: 0;
-}
-
 #message {
   font-size: 24px;
-  text-align: center;
 
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .button {
   --accent-color: hsl(0, 0%, 0%);
   --text-invert: hsl(0, 0%, 100%);
 
+  font-size: 20px;
+  line-height: 1;
+
+  color: var(--accent-color);
   background-color: hsl(0, 0%, 100%);
   border: 2px solid var(--accent-color);
 
   padding: 8px;
-
-  color: var(--accent-color);
-  line-height: 1;
   cursor: pointer;
 }
 
 .button:hover {
-  background-color: var(--accent-color);
   color: var(--text-invert);
+  background-color: var(--accent-color);
   border-color: transparent;
 }
 
 #reset-button {
   --accent-color: hsl(0, 80%, 50%);
-
-  width: 100%;
-  font-size: 20px;
 }
