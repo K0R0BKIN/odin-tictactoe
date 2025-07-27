@@ -68,7 +68,8 @@ body {
 
 #status {
   grid-area: status;
-  align-self: center;
+  align-self: end;
+  margin-bottom: 4rem;
 }
 
 #message {
