@@ -16,10 +16,15 @@ body {
 
 #game-ui {
   height: 100%;
+  width: 100%;
 
   display: grid;
   grid-template-rows: 1fr auto 1fr;
-  grid-template-areas: "status" "gameboard" "controls";
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas:
+    "status status status"
+     ". gameboard ." 
+     ". controls .";
 }
 
 #gameboard {
