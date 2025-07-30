@@ -228,7 +228,7 @@ const DisplayController = (function () {
       });
 
       function renderCell(node) {
-        const index = node.dataset.index;
+        const index = Number(node.dataset.index);
         const marker = board[index];
 
         const glyph = node.querySelector(".glyph");
