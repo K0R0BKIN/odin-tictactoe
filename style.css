@@ -27,6 +27,12 @@ body {
     ". controls .";
 }
 
+#status,
+#gameboard,
+#controls {
+  visibility: hidden;
+}
+
 #gameboard {
   grid-area: gameboard;
 

@@ -188,6 +188,7 @@ const DisplayController = (function () {
       const board = Gameboard.getBoard();
       const cellButtons = board.map((_, index) => buildCell(index));
       gameboardContainer.append(...cellButtons);
+      gameboardContainer.style.visibility = "visible";
 
       gameboardContainer.addEventListener("click", handleHumanMove);
 
