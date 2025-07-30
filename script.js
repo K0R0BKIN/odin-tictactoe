@@ -235,6 +235,7 @@ const DisplayController = (function () {
 
         const moveLegal = Object.values(illegalMoves).every((check) => !check);
         node.toggleAttribute("disabled", !moveLegal);
+        node.classList.toggle("loading", illegalMoves.opponentThinking);
 
         const markerSVG = buildMarkerSVG(marker || currentMarker);
         node.replaceChildren(markerSVG);
