@@ -25,6 +25,7 @@ const MARKERS = {
       line1.setAttribute("y1", "10");
       line1.setAttribute("x2", "90");
       line1.setAttribute("y2", "90");
+      line1.setAttribute("class", "line1");
       line1.setAttribute("vector-effect", "non-scaling-stroke");
 
       const line2 = document.createElementNS(svgNS, "line");
@@ -32,6 +33,7 @@ const MARKERS = {
       line2.setAttribute("y1", "10");
       line2.setAttribute("x2", "10");
       line2.setAttribute("y2", "90");
+      line2.setAttribute("class", "line2");
       line2.setAttribute("vector-effect", "non-scaling-stroke");
 
       return [line1, line2];
@@ -137,12 +139,13 @@ const GameController = (function () {
     function handleAIMove() {
       currentPlayer.setThinking(true);
 
+      const delay = 1000;
       setTimeout(() => {
         const AIMove = getRandomMove();
         playRound(AIMove);
         currentPlayer.setThinking(false);
         DisplayController.render();
-      }, 300);
+      }, delay);
 
       function getRandomMove() {
         const board = Gameboard.getBoard();
@@ -228,6 +231,10 @@ const DisplayController = (function () {
         const index = node.dataset.index;
         const marker = board[index];
 
+        const glyph = node.querySelector(".glyph");
+        const glyphVisible = glyph && !glyph.classList.contains("preview");
+        const currentMove = marker && !glyphVisible;
+
         const illegalMoves = {
           cellOccupied: board[index] !== null,
           opponentThinking: currentPlayer.isThinking(),
@@ -240,6 +247,17 @@ const DisplayController = (function () {
 
         const markerSVG = buildMarkerSVG(marker || currentMarker);
         node.replaceChildren(markerSVG);
+
+        if (currentMove) {
+          const shapes = Array.from(markerSVG.children);
+          for (const shape of shapes) {
+            const length = shape.getTotalLength();
+            shape.style.strokeDasharray = length;
+            shape.style.strokeDashoffset = length;
+          }
+
+          markerSVG.classList.add("animate");
+        }
 
         function buildMarkerSVG(marker) {
           const svgNS = "http://www.w3.org/2000/svg";
