@@ -81,10 +81,6 @@ const GameController = (function () {
   }
 
   function playRound(index) {
-    // The UI blocks illegal moves; this is just a nice‑to‑have fallback.
-    const moveIllegal = !validateMove(index);
-    if (moveIllegal) return;
-
     const marker = currentPlayer.getMarker();
     Gameboard.setCell(index, marker);
 
@@ -97,16 +93,6 @@ const GameController = (function () {
       }
     } else {
       gameOver = true;
-    }
-
-    function validateMove(index) {
-      const board = Gameboard.getBoard();
-      const illegalMoves = {
-        gameOver,
-        cellOccupied: board[index] !== null,
-      };
-      const isIllegal = Object.values(illegalMoves).some(Boolean);
-      return !isIllegal;
     }
 
     function checkWinner() {
@@ -149,9 +135,8 @@ const GameController = (function () {
     }
 
     function handleAIMove() {
-      if (gameOver) return;
-
       currentPlayer.setThinking(true);
+
       setTimeout(() => {
         const AIMove = getRandomMove();
         playRound(AIMove);
@@ -235,36 +220,45 @@ const DisplayController = (function () {
       const currentMarker = currentPlayer.getMarker();
 
       cellButtons.forEach((node, index) => {
-        const marker = board[index];
-        const markerAssigned = marker !== null;
-
-        node.classList.toggle("empty", !markerAssigned && !gameOver);
-        node.toggleAttribute("disabled", markerAssigned || gameOver);
-
-        const markerSVG = buildGlyphSVG(
-          marker || currentMarker,
-          !markerAssigned
-        );
-        const isWinning = winner?.pattern.includes(index);
-        markerSVG.classList.toggle("dimmed", gameOver && !isWinning);
-        node.replaceChildren(markerSVG);
+        renderCell(node, index);
       });
 
-      function buildGlyphSVG(marker, preview = false) {
-        const svgNS = "http://www.w3.org/2000/svg";
-        const node = document.createElementNS(svgNS, "svg");
-        node.setAttribute("class", "glyph");
-        node.classList.toggle("preview", preview);
+      function renderCell(node) {
+        const index = node.dataset.index;
+        const marker = board[index];
 
-        node.setAttribute("viewBox", "0 0 100 100");
-        node.setAttribute("stroke-width", "2");
-        node.setAttribute("stroke", marker.color);
-        node.setAttribute("stroke-linecap", "round");
+        const illegalMoves = {
+          cellOccupied: board[index] !== null,
+          opponentThinking: currentPlayer.isThinking(),
+          gameOver: gameOver,
+        };
 
-        const shapes = marker.buildSVGShapes(svgNS);
-        node.append(...shapes);
+        const moveLegal = Object.values(illegalMoves).every((check) => !check);
+        node.toggleAttribute("disabled", !moveLegal);
 
-        return node;
+        const markerSVG = buildMarkerSVG(marker || currentMarker);
+        node.replaceChildren(markerSVG);
+
+        function buildMarkerSVG(marker) {
+          const svgNS = "http://www.w3.org/2000/svg";
+          const node = document.createElementNS(svgNS, "svg");
+          node.setAttribute("class", "glyph");
+
+          node.classList.toggle("preview", !illegalMoves.cellOccupied);
+
+          const isWinning = winner?.pattern.includes(index);
+          node.classList.toggle("dimmed", illegalMoves.gameOver && !isWinning);
+
+          node.setAttribute("viewBox", "0 0 100 100");
+          node.setAttribute("stroke-width", "2");
+          node.setAttribute("stroke", marker.color);
+          node.setAttribute("stroke-linecap", "round");
+
+          const shapes = marker.buildSVGShapes(svgNS);
+          node.append(...shapes);
+
+          return node;
+        }
       }
     }
 

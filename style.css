@@ -23,8 +23,8 @@ body {
   grid-template-columns: 1fr auto 1fr;
   grid-template-areas:
     "status status status"
-     ". gameboard ." 
-     ". controls .";
+    ". gameboard ."
+    ". controls .";
 }
 
 #gameboard {
@@ -63,8 +63,12 @@ body {
   opacity: 0;
 }
 
-.cell.empty:hover .glyph.preview {
+.cell:hover .glyph.preview {
   opacity: 0.2;
+}
+
+.cell:disabled:hover .glyph.preview {
+  opacity: 0;
 }
 
 .glyph.dimmed {
